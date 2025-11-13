@@ -1,3 +1,3 @@
 export default function Categories() {
-  return <div>Categories</div>;
+  return <div className="pt-40">Categories</div>;
 }
