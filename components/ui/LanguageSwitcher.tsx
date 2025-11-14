@@ -71,7 +71,7 @@ export default function LanguageSwitcher() {
         >
           <Button
             variant="ghost"
-            className="min-w-24 text-lg font-medium text-gray-300 hover:text-white transition-colors duration-300 flex items-center justify-center hover:bg-transparent border border-transparent"
+            className="min-w-24 text-lg font-medium text-white hover:text-amber-500 transition-colors duration-300 flex items-center justify-center hover:bg-transparent border border-transparent"
           >
             <motion.div variants={globeVariants}>
               <Globe className="h-5 w-5" />

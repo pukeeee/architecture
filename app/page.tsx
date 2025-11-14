@@ -7,7 +7,7 @@ import Contact from "@/components/Contact";
 
 export default function Home() {
   return (
-    <div className="min-h-screen items-center justify-center">
+    <div className="min-h-screen items-center justify-center bg-orange-50">
       <Hero />
       <Company />
       <Categories />

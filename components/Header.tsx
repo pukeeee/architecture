@@ -45,7 +45,10 @@ export default function Header() {
       },
     });
 
-    const links = gsap.utils.toArray<HTMLElement>(".nav-link-gsap", navRef.current);
+    const links = gsap.utils.toArray<HTMLElement>(
+      ".nav-link-gsap",
+      navRef.current,
+    );
     links.forEach((link) => {
       const topLayer = link.children[0] as HTMLElement;
       const timeline = gsap.timeline({ paused: true });
@@ -112,9 +115,9 @@ export default function Header() {
                   key={link.name}
                   href={link.href}
                   onClick={handleScroll}
-                  className="nav-link-gsap relative text-xl font-medium text-white"
+                  className="nav-link-gsap relative text-2xl font-medium text-amber-500"
                 >
-                  <span className="absolute top-0 left-0 text-gray-300 overflow-hidden whitespace-nowrap">
+                  <span className="absolute top-0 left-0 text-white overflow-hidden whitespace-nowrap">
                     {link.name}
                   </span>
                   {link.name}

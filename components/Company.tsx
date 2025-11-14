@@ -34,53 +34,73 @@ export default function Company() {
   useLayoutEffect(() => {
     // Використовуємо gsap.utils.selector для зручного пошуку дочірніх елементів
     const q = gsap.utils.selector(sectionRef);
+    const textElements = q(".gsap-company-header, .gsap-company-p");
+    const statElements = q(".gsap-company-stat");
 
     // Створюємо контекст GSAP для безпечного керування анімаціями та їх очищення
     const ctx = gsap.context(() => {
-      const textElements = q(".gsap-company-header, .gsap-company-p");
+      // Створюємо головну шкалу часу (Timeline), але поки не прив'язуємо до неї ScrollTrigger.
+      // Це дозволить нам розділити логіку анімації та "пінінгу".
+      const tl = gsap.timeline({});
 
-      // --- Анімація Тексту: Частина 1 - Поява (Reveal) ---
-      gsap.from(textElements, {
-        // Початковий стан: прозорий і зміщений вниз на 100px
-        opacity: 0,
+      // --- ЕТАП 1: Анімація появи елементів ---
+      tl.from(textElements, {
         y: 100,
-        // Налаштування ScrollTrigger для появи
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 90%", // Початок, коли верх секції на 90% висоти екрана
-          end: "top 50%", // Кінець, коли верх секції на 50% висоти екрана
-          scrub: 1.5, // Плавне слідування за скролом
+        opacity: 0,
+        duration: 1,
+      });
+      tl.from(
+        statElements,
+        {
+          y: 100,
+          opacity: 0,
+          stagger: 0.3,
+          duration: 1,
         },
+        "<0.5",
+      );
+
+      // --- ЕТАП 2: Анімація зникнення елементів ---
+      tl.to(
+        textElements,
+        {
+          y: -50,
+          opacity: 0,
+          duration: 1.5,
+        },
+        ">+1",
+      );
+      tl.addLabel("fadeOutStart", "-=1");
+      tl.to(
+        statElements,
+        {
+          y: -100,
+          opacity: 0,
+          stagger: 0.2,
+          duration: 1,
+        },
+        "fadeOutStart",
+      );
+
+      // Створюємо ScrollTrigger для АНІМАЦІЇ.
+      // Він відповідає за те, коли анімація почнеться і як вона буде пов'язана зі скролом.
+      const animST = ScrollTrigger.create({
+        trigger: sectionRef.current,
+        animation: tl,
+        start: "top 400px", // Анімація починається, коли верх секції за 400px від верху екрана.
+        end: "+=200%",
+        scrub: 1,
       });
 
-      // --- Анімація Тексту: Частина 2 - Паралакс ---
-      gsap.to(textElements, {
-        // Рухаємо текст вгору, поки секція прокручується
-        y: -150,
-        ease: "none", // Лінійна анімація без згладжування
-        // Налаштування ScrollTrigger для паралаксу
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 50%", // Починаємо, де закінчилася анімація появи
-          end: "bottom top", // Закінчуємо, коли низ секції досягає верху екрана
-          scrub: 1.5,
-        },
-      });
-
-      // --- Анімація для колонок статистики (залишається без змін) ---
-      gsap.from(q(".gsap-company-stat"), {
-        // Початковий стан
-        opacity: 0,
-        y: 100,
-        // Послідовна поява елементів
-        stagger: 0.2,
-        // Налаштування ScrollTrigger
-        scrollTrigger: {
-          trigger: q(".gsap-company-stat")[0], // Тригер на першому елементі статистики
-          start: "top 90%", // Початок, коли верх елемента на 90% висоти екрана
-          end: "bottom bottom", // Кінець, коли низ елемента досягає низу екрана
-          scrub: 2,
-        },
+      // Створюємо окремий ScrollTrigger для ПІНІНГУ (закріплення секції).
+      // Він відповідає за те, коли секція "прилипне" до екрану.
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        pin: true,
+        start: "top 150px", // Пінінг починається, коли верх секції за 150px від верху екрана.
+        // Кінець пінінгу має збігатися з кінцем анімації для синхронізації.
+        // Ми динамічно отримуємо кінцеву точку з ScrollTrigger'а анімації.
+        end: () => animST.end,
       });
     }, sectionRef);
 
@@ -92,7 +112,7 @@ export default function Company() {
     <section
       ref={sectionRef}
       id="about"
-      className="bg-white dark:bg-neutral-950 py-20 md:py-28 overflow-hidden"
+      className=" dark:bg-neutral-950 pt-20 md:pt-28 overflow-hidden"
     >
       <div className="container mx-auto px-4 text-center">
         <div>
@@ -112,7 +132,7 @@ export default function Company() {
               key={stat.text}
               className="gsap-company-stat p-8 rounded-xl transition-colors duration-300"
             >
-              <p className="text-6xl md:text-7xl font-bold text-amber-600 mb-3">
+              <p className="text-6xl md:text-7xl font-bold text-amber-500 mb-3">
                 {stat.number}
               </p>
               <h3 className="text-xl font-semibold text-neutral-800 dark:text-neutral-200 mb-2">
