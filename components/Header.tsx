@@ -2,18 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { motion } from "motion/react";
+import { useGSAP } from "@gsap/react";
 
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 
-// Реєструємо плагіни GSAP
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, useGSAP);
 
-// Навігаційні посилання в порядку їх відображення зліва направо
 const navLinks = [
   { name: "About", href: "#about" },
   { name: "Categories", href: "#categories" },
@@ -21,53 +19,55 @@ const navLinks = [
   { name: "Contacts", href: "#contact" },
 ];
 
-/**
- * Компонент хедера сайту.
- * Має фіксоване позиціонування, анімований фон, що з'являється при скролі,
- * та навігаційні посилання для плавної прокрутки до секцій сторінки.
- * Анімація реалізована за допомогою GSAP та ScrollTrigger.
- */
 export default function Header() {
+  const headerRef = useRef<HTMLElement>(null);
   const headerBackgroundRef = useRef(null);
-  const navRef = useRef<HTMLElement>(null);
 
-  // Налаштовуємо анімацію фону та посилань
-  useEffect(() => {
-    const anim = gsap.to(headerBackgroundRef.current, {
-      backdropFilter: "blur(5px)",
-      backgroundColor: "rgba(17, 24, 39, 0.3)",
-      ease: "power1.inOut",
-      scrollTrigger: {
-        trigger: "body",
-        start: "100px top",
-        end: "250px top",
-        scrub: true,
-      },
-    });
+  useGSAP(
+    () => {
+      // Початкова анімація появи хедера
+      gsap.from(headerRef.current, {
+        y: -100,
+        opacity: 0,
+        duration: 0.5,
+        ease: "power2.out",
+      });
 
-    const links = gsap.utils.toArray<HTMLElement>(
-      ".nav-link-gsap",
-      navRef.current,
-    );
-    links.forEach((link) => {
-      const topLayer = link.children[0] as HTMLElement;
-      const timeline = gsap.timeline({ paused: true });
+      // Анімація фону при скролі
+      gsap.to(headerBackgroundRef.current, {
+        backdropFilter: "blur(5px)",
+        backgroundColor: "rgba(17, 24, 39, 0.3)",
+        ease: "power1.inOut",
+        scrollTrigger: {
+          trigger: "body",
+          start: "100px top",
+          end: "250px top",
+          scrub: true,
+        },
+      });
 
-      gsap.set(topLayer, { width: "100%" });
+      // Анімація посилань при наведенні
+      const links = gsap.utils.toArray<HTMLElement>(".nav-link-gsap");
+      links.forEach((link) => {
+        const topLayer = link.children[0] as HTMLElement;
+        const timeline = gsap.timeline({ paused: true });
 
-      timeline
-        .to(link, { scale: 1.1, duration: 0.3, ease: "power2.out" }, 0)
-        .to(topLayer, { width: "0%", duration: 0.4, ease: "power3.inOut" }, 0);
+        gsap.set(topLayer, { width: "100%" });
 
-      link.addEventListener("mouseenter", () => timeline.play());
-      link.addEventListener("mouseleave", () => timeline.reverse());
-    });
+        timeline
+          .to(link, { scale: 1.1, duration: 0.3, ease: "power2.out" }, 0)
+          .to(
+            topLayer,
+            { width: "0%", duration: 0.4, ease: "power3.inOut" },
+            0,
+          );
 
-    return () => {
-      anim.kill();
-      // Тут можна було б і очищувати event listeners, але для цього прикладу це не критично
-    };
-  }, []);
+        link.addEventListener("mouseenter", () => timeline.play());
+        link.addEventListener("mouseleave", () => timeline.reverse());
+      });
+    },
+    { scope: headerRef },
+  );
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     e.preventDefault();
@@ -82,12 +82,7 @@ export default function Header() {
   };
 
   return (
-    <motion.header
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50"
-    >
+    <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50">
       <div
         ref={headerBackgroundRef}
         className="w-full"
@@ -109,7 +104,7 @@ export default function Header() {
                 />
               </Link>
             </div>
-            <nav ref={navRef} className="flex items-center space-x-8">
+            <nav className="flex items-center space-x-8">
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
@@ -128,6 +123,6 @@ export default function Header() {
           </div>
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 }

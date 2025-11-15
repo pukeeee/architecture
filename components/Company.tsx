@@ -40,8 +40,7 @@ export default function Company() {
     // Створюємо контекст GSAP для безпечного керування анімаціями та їх очищення
     const ctx = gsap.context(() => {
       // Створюємо головну шкалу часу (Timeline), але поки не прив'язуємо до неї ScrollTrigger.
-      // Це дозволить нам розділити логіку анімації та "пінінгу".
-      const tl = gsap.timeline({});
+      const tl = gsap.timeline({ paused: true });
 
       // --- ЕТАП 1: Анімація появи елементів ---
       tl.from(textElements, {
@@ -82,25 +81,68 @@ export default function Company() {
         "fadeOutStart",
       );
 
-      // Створюємо ScrollTrigger для АНІМАЦІЇ.
-      // Він відповідає за те, коли анімація почнеться і як вона буде пов'язана зі скролом.
-      const animST = ScrollTrigger.create({
+      // Створюємо два ScrollTrigger для однієї анімації,
+      // щоб задати різну поведінку для різних напрямків скролу.
+      let downTriggerIsActive = true; // Флаг для відстеження активного тригера
+
+      // ScrollTrigger для скролу ВНИЗ (поведінка, яка вам подобалась)
+      const stDown = ScrollTrigger.create({
         trigger: sectionRef.current,
         animation: tl,
-        start: "top 90%", // Анімація починається, коли верх секції досягає 80% висоти екрана.
+        start: "top 90%",
         end: "+=200%",
         scrub: 1,
       });
 
-      // Створюємо окремий ScrollTrigger для ПІНІНГУ (закріплення секції).
-      // Він відповідає за те, коли секція "прилипне" до екрану.
-      ScrollTrigger.create({
+      // ScrollTrigger для скролу ВГОРУ
+      const stUp = ScrollTrigger.create({
+        trigger: sectionRef.current,
+        animation: tl,
+        start: "bottom 20%",
+        end: "+=200%",
+        scrub: 1,
+      });
+      stUp.disable(); // Вимикаємо за замовчуванням
+
+      // Окремий ScrollTrigger для пінінгу
+      const pinST = ScrollTrigger.create({
         trigger: sectionRef.current,
         pin: true,
-        start: "top 120px", // Пінінг починається, коли верх секції за 150px від верху екрана.
-        // Кінець пінінгу має збігатися з кінцем анімації для синхронізації.
-        // Ми динамічно отримуємо кінцеву точку з ScrollTrigger'а анімації.
-        end: () => animST.end,
+        start: "top 120px",
+        // Кінець пінінгу тепер прив'язаний до моменту, коли починається анімація зникнення
+        end: () => {
+          const activeST = downTriggerIsActive ? stDown : stUp;
+          // Обчислюємо прогрес анімації на мітці 'fadeOutStart'
+          const fadeOutProgress = tl.labels.fadeOutStart / tl.duration();
+          // Встановлюємо кінець пінінгу на відповідну позицію скролу
+          return (
+            activeST.start + (activeST.end - activeST.start) * fadeOutProgress
+          );
+        },
+      });
+
+      // Створюємо спостерігач за напрямком скролу, щоб перемикати тригери
+      ScrollTrigger.observe({
+        type: "scroll",
+        debounce: true, // Використовуємо дебаунс за замовчуванням
+        onChange: (self) => {
+          // @ts-expect-error - властивість direction існує, але відсутня в застарілих типах GSAP
+          if (self.direction === -1) {
+            if (downTriggerIsActive) {
+              downTriggerIsActive = false;
+              stUp.enable();
+              stDown.disable();
+              pinST.refresh();
+            }
+          } else {
+            if (!downTriggerIsActive) {
+              downTriggerIsActive = true;
+              stDown.enable();
+              stUp.disable();
+              pinST.refresh();
+            }
+          }
+        },
       });
     }, sectionRef);
 
