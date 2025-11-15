@@ -1,90 +1,74 @@
 "use client";
 
-// Імпорти React хуків для роботи з DOM-елементами та життєвим циклом компонента
-import { useRef, useLayoutEffect } from "react";
-// Імпортуємо Swiper та його компоненти
+import { useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-// Імпортуємо необхідні модулі Swiper для навігації, ефектів та автопрокрутки
 import { Navigation, EffectCreative, Autoplay } from "swiper/modules";
-// Імпортуємо бібліотеку анімацій GSAP та її плагін ScrollTrigger
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-// Імпортуємо motion для декларативних анімацій
-import { motion } from "motion/react";
+import { useGSAP } from "@gsap/react";
+import Image from "next/image";
 
-// Імпортуємо базові стилі Swiper та стилі для модулів
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/effect-creative";
 
-import Image from "next/image";
-
-// Реєструємо плагін ScrollTrigger для GSAP
 gsap.registerPlugin(ScrollTrigger);
 
-// Масив зображень для каруселі для зручного масштабування
 const heroImages = [
   { src: "/tmv-hero-1.webp", alt: "Екстер'єр сучасного будинку" },
   { src: "/tmv-hero-2.webp", alt: "Інтер'єр сучасного будинку" },
 ];
 
-/**
- * Компонент Hero, реалізований як карусель за допомогою Swiper.js.
- * Має анімацію появи та ефект віддалення (parallax) при скролі.
- * Надає можливість ручного перемикання слайдів за допомогою стрілок,
- * а також має ефект плавного переходу та автопрокрутку.
- */
 export default function Hero() {
-  // Створюємо ref для всієї секції, щоб використовувати її як тригер для анімації
   const sectionRef = useRef(null);
-  // Створюємо ref для контейнера Swiper, який будемо анімувати
   const swiperRef = useRef(null);
 
-  // Використовуємо useLayoutEffect для безпечної роботи з DOM-елементами на клієнті
-  useLayoutEffect(() => {
-    // Створюємо контекст GSAP для керування анімаціями
-    const ctx = gsap.context(() => {
-      // Створюємо анімацію, яка реагує на скрол
-      gsap.to(swiperRef.current, {
-        // Вказуємо, що анімація буде керована ScrollTrigger
+  useGSAP(
+    () => {
+      // Створюємо таймлайн для анімації, пов'язаної зі скролом.
+      // Таймлайн дозволяє послідовно керувати кількома анімаціями.
+      const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: sectionRef.current, // Елемент, який активує анімацію
-          start: "top top", // Початок анімації, коли верх тригера досягає верху екрана
-          end: "bottom top", // Кінець, коли низ тригера досягає верху екрана
-          scrub: true, // Плавне "прив'язування" анімації до прогресу скролу
+          trigger: sectionRef.current, // Елемент, який відстежується для запуску анімації.
+          start: "top top", // Анімація починається, коли верхня частина тригера досягає верхньої частини екрану.
+          end: "bottom top", // Анімація закінчується, коли нижня частина тригера досягає верхньої частини екрану.
+          scrub: true, // Анімація плавно "прив'язується" до прогресу прокрутки. `true` створює м'який ефект.
         },
-        scale: 0.8, // Зменшуємо масштаб до 80%
-        ease: "none", // Лінійна функція пом'якшення для плавності
       });
-    }, sectionRef); // Прив'язуємо контекст до головного елемента
 
-    // Функція очищення, яка виконається при розмонтуванні компонента
-    return () => ctx.revert();
-  }, []);
+      // Додаємо анімацію до таймлайну.
+      // При прокручуванні вниз, слайдер буде зменшуватися та ставати майже прозорим.
+      tl.to(swiperRef.current, {
+        scale: 0.6, // Кінцевий масштаб елемента (70% від початкового розміру).
+        opacity: 0.1, // Кінцева прозорість (10%).
+        ease: "power1.inOut", // Функція плавності для м'якого початку та кінця анімації.
+      });
+
+      // Початкова анімація появи слайдера при завантаженні сторінки.
+      // `autoAlpha` анімує одночасно `opacity` та `visibility`,
+      // що є кращим для продуктивності, ніж просто `opacity`.
+      gsap.from(swiperRef.current, {
+        autoAlpha: 0, // Початковий стан: повністю прозорий та невидимий.
+        duration: 1.5, // Тривалість анімації в секундах.
+        ease: "power2.out", // Функція плавності, що створює ефект уповільнення в кінці.
+      });
+    },
+    { scope: sectionRef },
+  );
 
   return (
     <section
       ref={sectionRef}
       className="relative h-screen w-full overflow-hidden"
     >
-      {/*
-        Контейнер для анімацій.
-        `motion` використовується для анімації появи.
-        `ref` використовується для GSAP анімації скролу.
-      */}
-      <motion.div
+      <div
         ref={swiperRef}
         className="h-full w-full"
-        initial={{ opacity: 0 }} // Початковий стан: повністю прозорий
-        animate={{ opacity: 1 }} // Кінцевий стан: повністю видимий
-        transition={{ duration: 1.5, ease: "easeOut" }} // Налаштування переходу
+        style={{ visibility: "hidden" }}
       >
         <Swiper
-          // Підключаємо модулі, які будемо використовувати
           modules={[Navigation, EffectCreative, Autoplay]}
-          // Вмикаємо навігаційні стрілки
           navigation
-          // Встановлюємо креативний ефект
           effect="creative"
           creativeEffect={{
             prev: {
@@ -95,14 +79,11 @@ export default function Hero() {
               translate: ["100%", 0, 0],
             },
           }}
-          // Встановлюємо швидкість переходу в 1500 мс (1.5 секунди)
           speed={1500}
-          // Робимо карусель нескінченною
           loop={true}
-          // Налаштовуємо автопрокрутку
           autoplay={{
-            delay: 5000, // Затримка 5 секунд
-            disableOnInteraction: true, // Вимикати автопрокрутку після ручного перемикання
+            delay: 5000,
+            disableOnInteraction: true,
           }}
           className="h-full w-full"
         >
@@ -114,25 +95,14 @@ export default function Hero() {
                 fill
                 className="object-cover"
                 quality={90}
-                priority={index === 0} // Пріоритетне завантаження тільки для першого слайду
+                priority={index === 0}
               />
-              {/*
-              Контейнер для майбутнього текстового контенту.
-              Кожен слайд може мати свій унікальний опис.
-            */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                {/* <h1 className="text-white text-4xl font-bold">Текст для слайду {index + 1}</h1> */}
-              </div>
+              <div className="absolute inset-0 flex items-center justify-center" />
             </SwiperSlide>
           ))}
         </Swiper>
-        {/*
-        Напівпрозорий шар поверх каруселі для кращої читабельності контенту.
-        z-10 гарантує, що він буде над зображеннями, але під стрілками навігації.
-        pointer-events-none дозволяє клікам "проходити" крізь нього до стрілок.
-      */}
-        <div className="absolute inset-0 bg-black/20 z-10 pointer-events-none"></div>
-      </motion.div>
+        <div className="absolute inset-0 z-10 pointer-events-none" />
+      </div>
     </section>
   );
 }

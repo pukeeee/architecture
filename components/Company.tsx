@@ -87,7 +87,7 @@ export default function Company() {
       const animST = ScrollTrigger.create({
         trigger: sectionRef.current,
         animation: tl,
-        start: "top 400px", // Анімація починається, коли верх секції за 400px від верху екрана.
+        start: "top 90%", // Анімація починається, коли верх секції досягає 80% висоти екрана.
         end: "+=200%",
         scrub: 1,
       });
@@ -97,7 +97,7 @@ export default function Company() {
       ScrollTrigger.create({
         trigger: sectionRef.current,
         pin: true,
-        start: "top 150px", // Пінінг починається, коли верх секції за 150px від верху екрана.
+        start: "top 120px", // Пінінг починається, коли верх секції за 150px від верху екрана.
         // Кінець пінінгу має збігатися з кінцем анімації для синхронізації.
         // Ми динамічно отримуємо кінцеву точку з ScrollTrigger'а анімації.
         end: () => animST.end,
@@ -112,7 +112,7 @@ export default function Company() {
     <section
       ref={sectionRef}
       id="about"
-      className=" dark:bg-neutral-950 pt-20 md:pt-28 overflow-hidden"
+      className="pt-20 md:pt-20 overflow-hidden"
     >
       <div className="container mx-auto px-4 text-center">
         <div>
@@ -132,7 +132,7 @@ export default function Company() {
               key={stat.text}
               className="gsap-company-stat p-8 rounded-xl transition-colors duration-300"
             >
-              <p className="text-6xl md:text-7xl font-bold text-amber-500 mb-3">
+              <p className="text-6xl md:text-7xl font-bold text-primary mb-3">
                 {stat.number}
               </p>
               <h3 className="text-xl font-semibold text-neutral-800 dark:text-neutral-200 mb-2">

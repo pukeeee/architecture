@@ -71,7 +71,7 @@ export default function LanguageSwitcher() {
         >
           <Button
             variant="ghost"
-            className="min-w-24 text-lg font-medium text-white hover:text-amber-500 transition-colors duration-300 flex items-center justify-center hover:bg-transparent border border-transparent"
+            className="min-w-24 text-lg font-medium text-white hover:text-amber-500 transition-colors duration-300 flex items-center justify-center border border-transparent"
           >
             <motion.div variants={globeVariants}>
               <Globe className="h-5 w-5" />
@@ -83,7 +83,7 @@ export default function LanguageSwitcher() {
 
       <DropdownMenuContent
         align="end"
-        className="w-auto min-w-20 bg-white/70 backdrop-blur-md rounded-xl shadow-lg border-gray-200/50"
+        className="w-auto min-w-20 bg-muted/70 backdrop-blur-md rounded-xl shadow-lg border-gray-200/50"
       >
         <motion.div
           variants={containerVariants}

@@ -39,8 +39,8 @@ export default function Header() {
       ease: "power1.inOut",
       scrollTrigger: {
         trigger: "body",
-        start: "50px top",
-        end: "100px top",
+        start: "100px top",
+        end: "250px top",
         scrub: true,
       },
     });
@@ -115,7 +115,7 @@ export default function Header() {
                   key={link.name}
                   href={link.href}
                   onClick={handleScroll}
-                  className="nav-link-gsap relative text-2xl font-medium text-amber-500"
+                  className="nav-link-gsap relative text-2xl font-medium text-primary"
                 >
                   <span className="absolute top-0 left-0 text-white overflow-hidden whitespace-nowrap">
                     {link.name}
